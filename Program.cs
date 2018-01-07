@@ -12,6 +12,7 @@ namespace OxCoin.TransactionGenerator
     {
         public static void Main(string[] args)
         {
+            // Automapper.
             Mapper.Initialize(cfg =>
             {
                 cfg.CreateMap<Data.Entities.User, User>().ReverseMap();
@@ -21,33 +22,18 @@ namespace OxCoin.TransactionGenerator
 
             if (!GetWallets().Any() && !GetUsers().Any())
             {
-                // Generate a genesis user, and their wallet.
                 GenerateGenesisUserWithWalletId();
-
-                // Generate some dummy users to use for our transactions demo.
                 GenerateUsersWithWalletIds();
             }
 
-            var generate = true;
-
-            while (generate)
+            while (true)
             {
                 // Set up some random transactions from within the user group.
                 GenerateTransactions();
 
-                Thread.Sleep(new TimeSpan(0, 0, 20));
+                Thread.Sleep(new TimeSpan(0, 0, 30));
                 Console.Beep();
-                Console.WriteLine("Generate more transactions? (Y/N)");
-                var answer = Console.ReadKey();
-
-                if (answer.Key.ToString().ToLower() == "n")
-                {
-                    generate = false;
-                }
             }
-
-            Console.WriteLine("Done..!");
-            Thread.Sleep(new TimeSpan(0, 0, 5));
         }
 
         private static void GenerateTransactions()
