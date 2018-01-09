@@ -13,8 +13,5 @@ namespace OxCoin.TransactionGenerator.Data.Entities
 
         [Required]
         public string FamilyName { get; set; }
-
-        [Required]
-        public string EmailAddress { get; set; }
     }
 }

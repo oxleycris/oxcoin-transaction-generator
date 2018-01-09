@@ -4,7 +4,10 @@ using System.Linq;
 using System.Threading;
 using AutoMapper;
 using OxCoin.TransactionGenerator.Data;
-using OxCoin.TransactionGenerator.Models;
+using Transaction = OxCoin.TransactionGenerator.Models.Transaction;
+using User = OxCoin.TransactionGenerator.Models.User;
+using Wallet = OxCoin.TransactionGenerator.Models.Wallet;
+using Miner = OxCoin.TransactionGenerator.Models.Miner;
 
 namespace OxCoin.TransactionGenerator
 {
@@ -18,13 +21,18 @@ namespace OxCoin.TransactionGenerator
                 cfg.CreateMap<Data.Entities.User, User>().ReverseMap();
                 cfg.CreateMap<Data.Entities.Wallet, Wallet>().ReverseMap();
                 cfg.CreateMap<Data.Entities.Transaction, Transaction>().ReverseMap();
+                cfg.CreateMap<Data.Entities.Miner, Miner>().ReverseMap();
             });
 
-            if (!GetWallets().Any() && !GetUsers().Any())
-            {
-                GenerateGenesisUserWithWalletId();
-                GenerateUsersWithWalletIds();
-            }
+            //if (!GetWallets().Any() && !GetUsers().Any())
+            //{
+            GenerateGenesisUserWithWalletId();
+            GenerateUsersWithWalletIds();
+            GenerateMinersWithWalletIds();
+
+            Console.WriteLine("Cont?");
+            Console.ReadLine();
+            //}
 
             while (true)
             {
@@ -33,6 +41,35 @@ namespace OxCoin.TransactionGenerator
 
                 Thread.Sleep(new TimeSpan(0, 0, 30));
                 Console.Beep();
+            }
+        }
+
+        private static void GenerateMinersWithWalletIds()
+        {
+            foreach (var user in GetUsers())
+            {
+                var wallet = new Wallet
+                {
+                    UserId = user.Id
+                };
+
+                AddWallet(wallet);
+
+                var miner = new Miner
+                {
+                    WalletId = wallet.Id
+                };
+
+                AddMiner(miner);
+            }
+        }
+
+        private static void AddMiner(Miner miner)
+        {
+            using (var db = new OxCoinDbContext())
+            {
+                db.Miners.Add(Mapper.Map<Data.Entities.Miner>(miner));
+                db.SaveChanges();
             }
         }
 
@@ -62,10 +99,21 @@ namespace OxCoin.TransactionGenerator
 
         private static Guid GetRandomWalletId(Guid? idToExclude = null)
         {
-            var wallets = GetWallets().Where(x => x.Id != idToExclude).ToList();
+            var miners = GetMiners().ToList();
+            var wallets = GetWallets().Where(x => x.Id != idToExclude &&
+                                                  x.UserId != GetGenesisUser().Id)
+                                      .ToList();
+
+            foreach (var miner in miners)
+            {
+                var wallet = wallets.First(x => x.Id == miner.WalletId);
+
+                wallets.Remove(wallet);
+            }
+
             wallets.Shuffle();
 
-            return wallets[new Random().Next(0, GetWallets().Count() - 1)].Id;
+            return wallets[new Random().Next(0, wallets.Count - 1)].Id;
         }
 
         private static void AddTransaction(Transaction transaction)
@@ -81,15 +129,16 @@ namespace OxCoin.TransactionGenerator
         {
             var users = new List<User>
             {
-                new User{ GivenName = "Alistair", FamilyName = "Evans", EmailAddress = "alistair.evans@7layer.net" },
-                new User{ GivenName = "Owain", FamilyName = "Richardson", EmailAddress = "owain.richardson@7layer.net" },
-                new User{ GivenName = "Matt", FamilyName = "Stahl-Coote", EmailAddress = "matt.stahl-coote@7layer.net" },
-                new User{ GivenName = "Chris", FamilyName = "Bedwell", EmailAddress = "chris.bedwell@7layer.net" },
-                new User{ GivenName = "Luke", FamilyName = "Hunt", EmailAddress = "luke.hunt@7layer.net" },
-                new User{ GivenName = "Tracey", FamilyName = "Young", EmailAddress = "tracey.young@7layer.net" },
-                new User{ GivenName = "Dan", FamilyName = "Blackmore", EmailAddress = "dan.blackmore@7layer.net" },
-                new User{ GivenName = "Craig", FamilyName = "Jenkins", EmailAddress = "craig.jenkins@7layer.net" },
-                new User{ GivenName = "John", FamilyName = "Rudden", EmailAddress = "john.rudden@7layer.net" }
+                new User { GivenName = "Alistair", FamilyName = "Evans" },
+                new User { GivenName = "Owain", FamilyName = "Richardson" },
+                new User { GivenName = "Matt", FamilyName = "Stahl-Coote" },
+                new User { GivenName = "Chris", FamilyName = "Bedwell" },
+                new User { GivenName = "Cris", FamilyName = "Oxley" },
+                new User { GivenName = "Luke", FamilyName = "Hunt" },
+                new User { GivenName = "Tracey", FamilyName = "Young" },
+                new User { GivenName = "Dan", FamilyName = "Blackmore" },
+                new User { GivenName = "Craig", FamilyName = "Jenkins" },
+                new User { GivenName = "John", FamilyName = "Rudden" }
             };
 
             foreach (var user in users)
@@ -101,7 +150,11 @@ namespace OxCoin.TransactionGenerator
 
         private static void GenerateGenesisUserWithWalletId()
         {
-            var genesisUser = new User { GivenName = "Cris", FamilyName = "Oxley", EmailAddress = "cris.oxley@7layer.net" };
+            var genesisUser = new User
+            {
+                GivenName = "Network",
+                FamilyName = "Admin"
+            };
 
             AddUser(genesisUser);
             AddWallet(new Wallet { UserId = GetGenesisUser().Id });
@@ -120,7 +173,7 @@ namespace OxCoin.TransactionGenerator
         {
             using (var db = new OxCoinDbContext())
             {
-                return Mapper.Map<User>(db.Users.First(x => x.EmailAddress == "cris.oxley@7layer.net"));
+                return Mapper.Map<User>(db.Users.First(x => x.GivenName == "Network" && x.FamilyName == "Admin"));
             }
         }
 
@@ -137,9 +190,20 @@ namespace OxCoin.TransactionGenerator
         {
             using (var db = new OxCoinDbContext())
             {
-                foreach (var wallet in db.Wallets)
+                foreach (var wallet in db.Wallets.Where(x => x.UserId != GetGenesisUser().Id))
                 {
                     yield return Mapper.Map<Wallet>(wallet);
+                }
+            }
+        }
+
+        private static IEnumerable<Miner> GetMiners()
+        {
+            using (var db = new OxCoinDbContext())
+            {
+                foreach (var miner in db.Miners)
+                {
+                    yield return Mapper.Map<Miner>(miner);
                 }
             }
         }
@@ -148,7 +212,7 @@ namespace OxCoin.TransactionGenerator
         {
             using (var db = new OxCoinDbContext())
             {
-                foreach (var user in db.Users)
+                foreach (var user in db.Users.Where(x => x.Id != GetGenesisUser().Id))
                 {
                     yield return Mapper.Map<User>(user);
                 }

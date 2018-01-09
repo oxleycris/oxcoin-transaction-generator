@@ -20,6 +20,20 @@ namespace OxCoin.TransactionGenerator.Migrations
                 .HasAnnotation("ProductVersion", "2.0.1-rtm-125")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+            modelBuilder.Entity("OxCoin.TransactionGenerator.Data.Entities.Miner", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<Guid>("WalletId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WalletId");
+
+                    b.ToTable("Miners");
+                });
+
             modelBuilder.Entity("OxCoin.TransactionGenerator.Data.Entities.Transaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -49,9 +63,6 @@ namespace OxCoin.TransactionGenerator.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("EmailAddress")
-                        .IsRequired();
-
                     b.Property<string>("FamilyName")
                         .IsRequired();
 
@@ -75,6 +86,14 @@ namespace OxCoin.TransactionGenerator.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Wallets");
+                });
+
+            modelBuilder.Entity("OxCoin.TransactionGenerator.Data.Entities.Miner", b =>
+                {
+                    b.HasOne("OxCoin.TransactionGenerator.Data.Entities.Wallet", "Wallet")
+                        .WithMany()
+                        .HasForeignKey("WalletId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("OxCoin.TransactionGenerator.Data.Entities.Wallet", b =>

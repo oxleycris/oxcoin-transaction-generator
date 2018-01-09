@@ -4,15 +4,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OxCoin.TransactionGenerator.Data.Entities
 {
-    public class Wallet
+    public class Miner
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
-        [ForeignKey("User")]
-        public Guid UserId { get; set; }
+        [ForeignKey("Wallet")]
+        public Guid WalletId { get; set; }
 
-        public virtual User User { get; set; }
+        public virtual Wallet Wallet { get; set; }
     }
 }

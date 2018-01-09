@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace OxCoin.TransactionGenerator.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -17,8 +17,8 @@ namespace OxCoin.TransactionGenerator.Migrations
                     Size = table.Column<int>(nullable: false),
                     SourceWalletId = table.Column<Guid>(nullable: false),
                     Timestamp = table.Column<DateTime>(nullable: false),
-                    TransferFee = table.Column<decimal>(nullable: false),
-                    TransferedAmount = table.Column<decimal>(nullable: false)
+                    TransferFee = table.Column<decimal>(type: "decimal(18, 8)", nullable: false),
+                    TransferedAmount = table.Column<decimal>(type: "decimal(18, 8)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,7 +30,6 @@ namespace OxCoin.TransactionGenerator.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
-                    EmailAddress = table.Column<string>(nullable: false),
                     FamilyName = table.Column<string>(nullable: false),
                     GivenName = table.Column<string>(nullable: false)
                 },
@@ -57,6 +56,29 @@ namespace OxCoin.TransactionGenerator.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Miners",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    WalletId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Miners", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Miners_Wallets_WalletId",
+                        column: x => x.WalletId,
+                        principalTable: "Wallets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Miners_WalletId",
+                table: "Miners",
+                column: "WalletId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Wallets_UserId",
                 table: "Wallets",
@@ -65,6 +87,9 @@ namespace OxCoin.TransactionGenerator.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Miners");
+
             migrationBuilder.DropTable(
                 name: "Transactions");
 
