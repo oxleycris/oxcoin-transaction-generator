@@ -24,23 +24,19 @@ namespace OxCoin.TransactionGenerator
                 cfg.CreateMap<Data.Entities.Miner, Miner>().ReverseMap();
             });
 
-            //if (!GetWallets().Any() && !GetUsers().Any())
-            //{
-            GenerateGenesisUserWithWalletId();
-            GenerateUsersWithWalletIds();
-            GenerateMinersWithWalletIds();
+            if (GetGenesisUser() == null)
+            {
+                GenerateGenesisUserWithWalletId();
+                GenerateUsersWithWalletIds();
+                GenerateMinersWithWalletIds();
+            }
 
             Console.WriteLine("Cont?");
             Console.ReadLine();
-            //}
 
             while (true)
             {
-                // Set up some random transactions from within the user group.
                 GenerateTransactions();
-
-                Thread.Sleep(new TimeSpan(0, 0, 30));
-                Console.Beep();
             }
         }
 
@@ -143,6 +139,11 @@ namespace OxCoin.TransactionGenerator
 
             foreach (var user in users)
             {
+                if (GetUsers().FirstOrDefault(x => x.FamilyName == user.FamilyName && x.GivenName == user.GivenName) != null)
+                {
+                    break;
+                }
+
                 AddUser(user);
                 AddWallet(new Wallet { UserId = user.Id });
             }
@@ -173,7 +174,7 @@ namespace OxCoin.TransactionGenerator
         {
             using (var db = new OxCoinDbContext())
             {
-                return Mapper.Map<User>(db.Users.First(x => x.GivenName == "Network" && x.FamilyName == "Admin"));
+                return Mapper.Map<User>(db.Users.FirstOrDefault(x => x.GivenName == "Network" && x.FamilyName == "Admin"));
             }
         }
 
