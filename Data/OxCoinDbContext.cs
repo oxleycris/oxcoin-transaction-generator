@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using OxCoin.TransactionGenerator.Data.Entities;
+using OxCoin.TransactionGenerator.Data.Entities.OxCoin;
 
 namespace OxCoin.TransactionGenerator.Data
 {
@@ -10,6 +11,7 @@ namespace OxCoin.TransactionGenerator.Data
         public DbSet<Wallet> Wallets { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<Miner> Miners { get; set; }
+        public DbSet<OxPiece> Oxs { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

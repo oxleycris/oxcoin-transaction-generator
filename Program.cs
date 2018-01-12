@@ -27,11 +27,13 @@ namespace OxCoin.TransactionGenerator
             if (GetGenesisUser() == null)
             {
                 GenerateGenesisUserWithWalletId();
-                GenerateUsersWithWalletIds();
-                GenerateMinersWithWalletIds();
             }
 
-            Console.WriteLine("Cont?");
+            GenerateUsersWithWalletIds();
+            GenerateMinersWithWalletIds();
+
+            Console.WriteLine("Generate transactions?");
+            Console.Beep();
             Console.ReadLine();
 
             while (true)

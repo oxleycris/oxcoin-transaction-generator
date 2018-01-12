@@ -11,9 +11,10 @@ using System;
 namespace OxCoin.TransactionGenerator.Migrations
 {
     [DbContext(typeof(OxCoinDbContext))]
-    partial class OxCoinDbContextModelSnapshot : ModelSnapshot
+    [Migration("20180110182004_AddedOxEntity")]
+    partial class AddedOxEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
